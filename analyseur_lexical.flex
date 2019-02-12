@@ -3,8 +3,8 @@
  */ 
 %{
 /* code copié AU DÉBUT de l'analyseur */
-
-#include "symboles.h"
+#include "syntabs.h"
+#include "analyseur_syntaxique.tab.h"
 %}
 %option yylineno
 %option nounput
@@ -21,7 +21,7 @@
 <COMM>"\n" BEGIN INITIAL;
 
 [ \t] {}
-[\n] {++yylineno;}
+[\n] {}
 ";" {return POINT_VIRGULE;}
 "+" {return PLUS;}
 "*" {return FOIS;}
@@ -39,16 +39,16 @@
 "|" {return OU;}
 "!" {return NON;}
 "si " {return SI;}
-"alors " {return ALORS;}
-"sinon " {return SINON;}
-"tantque " {return TANTQUE;}
-"faire " {return FAIRE;}
-"entier " {return ENTIER;}
-"retour " {return RETOUR;}
-"lire" {return LIRE;}
-"ecrire" {return ECRIRE;}
-[a-zA-Z$_]+[a-zA-Z$_0-9]* {return IDENTIF;}
-[0-9]+ {/*yylval = atoi(yytext);*/ return NOMBRE; }
+"alors" {return ALORS;}
+"sinon" {return SINON;}
+"tantque" {return TANTQUE;}
+"faire" {return FAIRE;}
+"entier" {return ENTIER;}
+"retour" {return RETOUR;}
+"lire" {return IDENTIF;}
+"ecrire" {return IDENTIF;}
+[a-zA-Z$_]+[a-zA-Z$_0-9]* {yylval.idval = yytext; return IDENTIF;}
+[0-9]+ {yylval.nval = atoi(yytext); return NOMBRE; }
 "," {return VIRGULE;}
 
 

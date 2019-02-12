@@ -6,6 +6,7 @@ max( entier $a, entier $b )
     retour $a;
 }
 
+
 main()
 entier $v_1, entier $v_2;
 {
