@@ -279,7 +279,7 @@ void affiche_foncDec(n_dec *n)
 {
   char *fct = "foncDec";
   affiche_balise_ouvrante(fct, trace_abs);
-  //  affiche_xml_texte( n->nom, trace_abs );
+  affiche_xml_texte( n->nom, trace_abs );
   affiche_l_dec(n->u.foncDec_.param);
   affiche_l_dec(n->u.foncDec_.variables);
   affiche_instr(n->u.foncDec_.corps);

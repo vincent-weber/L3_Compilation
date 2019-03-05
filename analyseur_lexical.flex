@@ -45,9 +45,9 @@
 "faire" {return FAIRE;}
 "entier" {return ENTIER;}
 "retour" {return RETOUR;}
-"lire" {return IDENTIF;}
-"ecrire" {return IDENTIF;}
-[a-zA-Z$_]+[a-zA-Z$_0-9]* {yylval.idval = yytext; return IDENTIF;}
+"lire" { return LIRE;}
+"ecrire" {return ECRIRE;}
+[a-zA-Z$_]+[a-zA-Z$_0-9]* {yylval.idval = strdup(yytext); return IDENTIF;}
 [0-9]+ {yylval.nval = atoi(yytext); return NOMBRE; }
 "," {return VIRGULE;}
 

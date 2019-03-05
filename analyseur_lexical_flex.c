@@ -989,17 +989,17 @@ YY_RULE_SETUP
 case 29:
 YY_RULE_SETUP
 #line 48 "analyseur_lexical.flex"
-{return IDENTIF;}
+{ return LIRE;}
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
 #line 49 "analyseur_lexical.flex"
-{return IDENTIF;}
+{return ECRIRE;}
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
 #line 50 "analyseur_lexical.flex"
-{yylval.idval = yytext; return IDENTIF;}
+{yylval.idval = strdup(yytext); return IDENTIF;}
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
