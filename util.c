@@ -110,6 +110,10 @@ void affiche_balise_fermante(const char *fct_, int trace_xml) {
  ******************************************************************************/
 
 void affiche_texte( char *texte_, int trace_xml ) {
+  /*printf("TEXTE : \n");
+  printf(texte_);
+  printf("\n");
+  printf("FIN");*/
   int i = 0;
   while( texte_[ i ] != '\0' ) {
     if( texte_[ i ] == '<' ) {

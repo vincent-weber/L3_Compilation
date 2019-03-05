@@ -53,11 +53,11 @@ int yyerror(char *s); // declare ci-dessous
 %token VIRGULE 
 
 %type <nlinstr> linstr
-%type <ninstr> instr iaffect isi itantque iretour iappelfct ibloc
-%type <nexp> exp exp0 exp1 exp2 exp3 exp4 exp5 exp6
+%type <ninstr> instr iaffect isi itantque iretour iappelfct ibloc iecrire
+%type <nexp> exp exp0 exp1 exp2 exp3 exp4 exp5 exp6 lire
 %type <nlexp> lexp lexpbis
 %type <nvar> var
-%type <nldec> ldecvaropt largopt ldecvar ldecvarbis ldecfct
+%type <nldec> ldecvaropt ldecvar ldecvarbis ldecfct largopt 
 %type <ndec> decvar decfct
 %type <nprog> programme
 %type <nappel> appelfct
@@ -69,7 +69,7 @@ int yyerror(char *s); // declare ci-dessous
 %start programme
 %%
 
-programme : ldecvaropt ldecfct {$$ = cree_n_prog($1,$2);};
+programme : ldecvaropt ldecfct {n = cree_n_prog($1,$2);};
 
 ldecvaropt : ldecvar POINT_VIRGULE
 	| {$$ = NULL;}
@@ -78,7 +78,7 @@ ldecvar : decvar ldecvarbis {$$ = cree_n_l_dec($1, $2);} ;
 ldecvarbis : VIRGULE decvar ldecvarbis {$$ = cree_n_l_dec($2, $3);}
 	| {$$ = NULL;}
 	; 
-decvar : ENTIER IDENTIF  
+decvar : ENTIER IDENTIF
 		 {$$ = cree_n_dec_var($2);}
 	| 	 ENTIER IDENTIF CROCHET_OUVRANT NOMBRE CROCHET_FERMANT 
 		 {$$ = cree_n_dec_tab($2,$4);} ;
@@ -106,7 +106,12 @@ instr : iaffect
 	|	iretour
 	|	iappelfct
 	|	ibloc
+	|	iecrire
 	;
+
+
+iecrire : ECRIRE PARENTHESE_OUVRANTE exp PARENTHESE_FERMANTE POINT_VIRGULE { $$= cree_n_instr_ecrire($3);};
+
 iaffect : var EGAL exp POINT_VIRGULE {$$ = cree_n_instr_affect($1, $3);}
 	;
 isi : SI exp ALORS ibloc {$$ = cree_n_instr_si($2, $4, NULL);}
@@ -146,13 +151,16 @@ exp3 : exp3 FOIS exp4 {$$ = cree_n_exp_op(fois, $1, $3);}
 exp4 : NON exp4 {$$ = cree_n_exp_op(non, $2, NULL);}
 	| exp5
 	;
-exp5 : PARENTHESE_OUVRANTE exp5 PARENTHESE_FERMANTE {$$ = $2;}
+exp5 : PARENTHESE_OUVRANTE exp PARENTHESE_FERMANTE {$$ = $2;}
 	| exp6
 	;
 exp6 : var {$$ = cree_n_exp_var($1);}
 	| NOMBRE {$$ = cree_n_exp_entier($1);}
 	| appelfct {$$ = cree_n_exp_appel($1);}
+	| lire 
 	;
+lire : LIRE PARENTHESE_OUVRANTE PARENTHESE_FERMANTE {$$ = cree_n_exp_lire();};
+
 var : IDENTIF {$$ = cree_n_var_simple($1);}
 	| IDENTIF CROCHET_OUVRANT exp CROCHET_FERMANT {$$ = cree_n_var_indicee($1, $3);}
 	;
