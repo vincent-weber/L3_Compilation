@@ -10,6 +10,9 @@
 FILE *yyin;
 extern char *yytext;   // déclaré dans analyseur_lexical
 n_prog * n = NULL;
+
+
+
 /***********************************************************************
  * Fonction auxiliaire appelée par le compilo en mode -l pour tester 
  * l'analyseur lexical et, étant donné un programme en entrée, afficher 
@@ -92,8 +95,8 @@ int main(int argc, char **argv) {
     affiche_nasm = 1; /* Par défaut, affiche code cible NASM */
   }
 
+yyparse();
 if (affiche_syntaxe == 1) {
-	yyparse();
 	printf("analyse syntaxique terminée.\n");
   }
   
@@ -102,16 +105,13 @@ if (affiche_syntaxe == 1) {
   }  
   //yyparse();  
   if( affiche_syntaxe_abstraite ) {
-	yyparse();
-    	affiche_n_prog(n);
+    affiche_n_prog(n);
   }
   if(affiche_code3a){
   	//Affiche code 3a 
   }  
   if(affiche_tabsymb){
-	yyparse();
 	parcours_n_prog(n);
-    afficheTabsymboles();
   }
   if(affiche_nasm){
     //Affiche code cible NASM

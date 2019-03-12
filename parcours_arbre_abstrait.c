@@ -5,6 +5,7 @@
 
 int adresseGlobaleCourante = 0;
 
+
 void parcours_n_prog(n_prog *n);
 void parcours_l_instr(n_l_instr *n);
 void parcours_instr(n_instr *n);
@@ -37,11 +38,14 @@ int trace_abs_parcours = 1;
 
 void parcours_n_prog(n_prog *n)
 {
+	portee = P_VARIABLE_GLOBALE;
+	adresseLocaleCourante = 0;
+	adresseArgumentCourant= 0;
+	printf("debut parcours arbre\n");
   parcours_l_dec(n->variables);
-  afficheTabsymboles();
   parcours_l_dec(n->fonctions); 
   if (rechercheExecutable("main") == -1) {}
-	//erreur
+	printf("warning : pas de main \n");
 }
 
 /*-------------------------------------------------------------------------*/
@@ -126,7 +130,7 @@ void parcours_appel(n_appel *n)
 	else {} // erreur nb arg
   }
   else{
-	//warning
+	printf("warning : pas de fonction %s\n", n->fonction);
   }
   
   
@@ -173,8 +177,10 @@ void parcours_varExp(n_exp *n)
 {
   if (rechercheExecutable(n->u.var->nom) != -1)
   	parcours_var(n->u.var);
-  else {}
-	//warning
+  else {
+	printf("warning : pas de variable %s\n", n->u.var->nom);
+  }
+
 }
 
 /*-------------------------------------------------------------------------*/
@@ -245,19 +251,20 @@ void parcours_dec(n_dec *n)
 
 void parcours_foncDec(n_dec *n)
 {
-  	if (rechercheDeclarative(n->nom) != -1) {
+  	if (rechercheDeclarative(n->nom) == -1) {
 	  int argcount = 0;
 	  n_l_dec *ncourant = n->u.foncDec_.param;
 	  while (ncourant != NULL) {
 		ncourant = ncourant->queue;
 		++argcount;
 	  }
-	  ajouteIdentificateur(n->nom, portee, T_FONCTION, adresseGlobaleCourante, argcount);
+	  ajouteIdentificateur(n->nom, portee, T_FONCTION, 0, argcount);
 	  entreeFonction();
 	  parcours_l_dec(n->u.foncDec_.param);
 	  portee = P_VARIABLE_LOCALE;
 	  parcours_l_dec(n->u.foncDec_.variables);
 	  parcours_instr(n->u.foncDec_.corps);
+		printf("Table symboles de la fonction %s\n",n->nom); 
 	  sortieFonction(trace_abs_parcours);
   	}
 }
@@ -266,7 +273,7 @@ void parcours_foncDec(n_dec *n)
 
 void parcours_varDec(n_dec *n)
 {
-  if (rechercheDeclarative(n->nom) != -1) {
+  if (rechercheDeclarative(n->nom) == -1) {
 	if (portee == P_VARIABLE_GLOBALE) {
 		ajouteIdentificateur(n->nom, portee, T_ENTIER, adresseGlobaleCourante, 1);
 		adresseGlobaleCourante += 4;
@@ -280,19 +287,20 @@ void parcours_varDec(n_dec *n)
 		adresseArgumentCourant += 4;
 	}
   }
+  else{printf("attention la variable %s existe déjà dans la même portée\n", n->nom);}
 }
 
 /*-------------------------------------------------------------------------*/
 
 void parcours_tabDec(n_dec *n)
 {
-  if (rechercheDeclarative(n->nom) != -1) {
+  if (rechercheDeclarative(n->nom) == -1) {
 	if (portee == P_VARIABLE_GLOBALE) {
 		ajouteIdentificateur(n->nom, portee, T_TABLEAU_ENTIER, adresseGlobaleCourante, n->u.tabDec_.taille);
 		adresseGlobaleCourante += 4 * n->u.tabDec_.taille;
 	} 
 	else if (portee == P_VARIABLE_LOCALE) {
-		//erreur : un tableau n'est que global
+		printf("un tableau n'est que global\n");
 	}
   }
 }
@@ -313,14 +321,14 @@ void parcours_var(n_var *n)
 void parcours_var_simple(n_var *n)
 {
   if (rechercheExecutable(n->nom) == -1) {}
-	//warning
+	printf("warning : pas de variable %s\n", n->nom);
 }
 
 /*-------------------------------------------------------------------------*/
 void parcours_var_indicee(n_var *n)
 {
   if (rechercheExecutable(n->nom) == -1)
-	//warning
+	printf("warning : pas de variable %s\n", n->nom);
   parcours_exp( n->u.indicee_.indice );
   
 }
