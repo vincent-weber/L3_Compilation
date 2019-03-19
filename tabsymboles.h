@@ -21,6 +21,7 @@ typedef struct {
   char *identif;  // Nom de l'identificateur
   int portee;     // Valeurs possibles P_VARIABLE_GLOBALE, P_VARIABLE_LOCALE, P_ARGUMENT
   int type;       // Valeurs possibles T_ENTIER, T_TABLEAU_ENTIER et T_FONCTION
+  int adresse;    // décalage à partir de la base de la région de données: indice à incrémenter par 4: 0, 4, 8, 12...
   int complement; // taille d'un tableau OU nombre d'arguments d'une fonction
 } desc_identif;
 
