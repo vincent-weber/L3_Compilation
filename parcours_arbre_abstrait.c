@@ -32,7 +32,7 @@ void parcours_tabDec(n_dec *n);
 operande* parcours_var(n_var *n);
 operande* parcours_var_simple(n_var *n);
 operande* parcours_var_indicee(n_var *n);
-operande* parcours_appel(n_appel *n);
+void parcours_appel(n_appel *n);
 
 int trace_abs_parcours = 1;
 
@@ -84,15 +84,13 @@ void parcours_instr_si(n_instr *n)
   operande* constante0 = code3a_new_constante(0);
   operande *result_test = parcours_exp(n->u.si_.test);
   operande *etiquette1 = code3a_new_etiquette_auto();
-  operande *etiquette2 = code3a_new_etiquette_auto();
   code3a_ajoute_instruction(jump_if_equal,result_test,constante0,etiquette1,"si test faux");
   parcours_instr(n->u.si_.alors);
-  code3a_ajoute_instruction(jump,etiquette2, NULL ,NULL,"jump fin si");
+  code3a_ajoute_instruction(func_end,NULL, NULL ,NULL,"jump fin si");
   code3a_ajoute_etiquette(etiquette1->u.oper_nom);
   if(n->u.si_.sinon){
     parcours_instr(n->u.si_.sinon);
   }
-  code3a_ajoute_etiquette(etiquette2->u.oper_nom);
 }
 
 /*-------------------------------------------------------------------------*/
@@ -125,12 +123,16 @@ void parcours_instr_affect(n_instr *n)
 
 void parcours_instr_appel(n_instr *n)
 {
-  operande* ret = parcours_appel(n->u.appel);
+  parcours_appel(n->u.appel);
+char *etiquette = malloc(20*sizeof(char));
+  sprintf(etiquette, "f%s", n->u.appel->fonction);
+  operande *etiquette1 = code3a_new_etiquette(etiquette);
+  code3a_ajoute_instruction(func_call,etiquette1, NULL ,NULL,"call");
   
 }
 /*-------------------------------------------------------------------------*/
 
-operande* parcours_appel(n_appel *n)
+void parcours_appel(n_appel *n)
 {
   operande* constante1 = code3a_new_constante(1);
   code3a_ajoute_instruction(alloc,constante1, NULL ,NULL,"alloc val ret");
@@ -150,10 +152,6 @@ operande* parcours_appel(n_appel *n)
   else{
 	printf("warning : pas de fonction %s\n", n->fonction);
   }
-  operande *ret =code3a_new_temporaire();
-  operande *etiquette1 = code3a_new_etiquette(n->fonction);
-  code3a_ajoute_instruction(func_call,etiquette1, NULL ,ret,"call");
-  return ret;
 }
 
 /*-------------------------------------------------------------------------*/
@@ -203,8 +201,8 @@ operande* parcours_varExp(n_exp *n)
 {
   int l;
   if ((l=rechercheExecutable(n->u.var->nom)) != -1) {
-  	parcours_var(n->u.var);
-    return code3a_new_var(n->u.var->nom, tabsymboles.tab[l].portee, tabsymboles.tab[l].adresse);
+  	operande *var = parcours_var(n->u.var);
+    return var;
   }
   else {
 	printf("warning : pas de variable %s\n", n->u.var->nom);
@@ -216,7 +214,7 @@ operande* parcours_varExp(n_exp *n)
 operande* parcours_opExp(n_exp *n)
 {
   operande* constante0 = code3a_new_constante(0);
-  operande* constante1 = code3a_new_constante(1);
+  operande* constante1 = code3a_new_constante(-1);
   operande *op1;
   operande *op2;
   operande *r =code3a_new_temporaire();
@@ -240,23 +238,17 @@ operande* parcours_opExp(n_exp *n)
   }
   else if(n->u.opExp_.op == egal){
 	operande *etiquette1 = code3a_new_etiquette_auto();
-	operande *etiquette2 = code3a_new_etiquette_auto();
+    code3a_ajoute_instruction(assign,constante1,NULL,r,"vrai");
 	code3a_ajoute_instruction(jump_if_equal,op1,op2,etiquette1,"opé arith ==");
 	code3a_ajoute_instruction(assign,constante0,NULL,r,"faux");
-	code3a_ajoute_instruction(jump,etiquette2,NULL,NULL,"goto");
 	code3a_ajoute_etiquette(etiquette1->u.oper_nom);
-	code3a_ajoute_instruction(assign,constante1,NULL,r,"vrai");
-	code3a_ajoute_etiquette(etiquette2->u.oper_nom);
   }
   else if(n->u.opExp_.op == inferieur){
 	operande *etiquette1 = code3a_new_etiquette_auto();
-	operande *etiquette2 = code3a_new_etiquette_auto();
+    code3a_ajoute_instruction(assign,constante1,NULL,r,"vrai");
 	code3a_ajoute_instruction(jump_if_less,op1,op2,etiquette1,"opé arith <");
 	code3a_ajoute_instruction(assign,constante0,NULL,r,"faux");
-	code3a_ajoute_instruction(jump,etiquette2,NULL,NULL,"goto");
 	code3a_ajoute_etiquette(etiquette1->u.oper_nom);
-	code3a_ajoute_instruction(assign,constante1,NULL,r,"vrai");
-	code3a_ajoute_etiquette(etiquette2->u.oper_nom);
   }
   else if(n->u.opExp_.op == ou){
 	operande *etiquette1 = code3a_new_etiquette_auto();
@@ -315,8 +307,13 @@ operande* parcours_lireExp(n_exp *n)
 operande* parcours_appelExp(n_exp *n)
 {
   
-  return parcours_appel(n->u.appel);
-  
+  parcours_appel(n->u.appel);
+  operande *ret =code3a_new_temporaire();
+  char *etiquette = malloc(20*sizeof(char));
+  sprintf(etiquette, "f%s", n->u.appel->fonction);
+  operande *etiquette1 = code3a_new_etiquette(etiquette);
+  code3a_ajoute_instruction(func_call,etiquette1, NULL ,ret,"call");
+  return ret;
 }
 
 /*-------------------------------------------------------------------------*/
@@ -393,7 +390,6 @@ void parcours_varDec(n_dec *n)
 	}
 	else if (portee == P_ARGUMENT) {
 		ajouteIdentificateur(n->nom, portee, T_ENTIER, adresseArgumentCourant, 1);
-		code3a_ajoute_instruction(alloc, code3a_new_constante(1), code3a_new_var(n->nom, portee, adresseArgumentCourant), NULL, "alloc var argument");
 		adresseArgumentCourant += 4;
 	}
   }
@@ -437,10 +433,10 @@ operande* parcours_var_simple(n_var *n)
 	int l;
   if ((l=rechercheExecutable(n->nom)) == -1) {
 	printf("warning : pas de variable %s\n", n->nom);
-	return code3a_new_var(n->nom, tabsymboles.tab[l].portee, tabsymboles.tab[l].adresse);
+	return NULL;
   }
 	else{
-		return NULL;
+		return code3a_new_var(n->nom, tabsymboles.tab[l].portee, tabsymboles.tab[l].adresse);
 	}
 }
 
@@ -448,9 +444,28 @@ operande* parcours_var_simple(n_var *n)
 operande* parcours_var_indicee(n_var *n)
 {
 	int l;
-  if ((l=rechercheExecutable(n->nom)) == -1)
+	char *nom = malloc(20*sizeof(char));
+  if ((l=rechercheExecutable(n->nom)) == -1){
 	printf("warning : pas de variable %s\n", n->nom);
-  operande* indice = parcours_exp( n->u.indicee_.indice );
-  return code3a_new_var(n->nom, tabsymboles.tab[l].portee, tabsymboles.tab[l].adresse + indice->u.oper_valeur*4);
+	return NULL;
+	}
+	else {
+	  operande* indice = parcours_exp( n->u.indicee_.indice );
+	  if( indice->oper_type==O_VARIABLE ){
+			operande *temp = code3a_new_temporaire();
+			code3a_ajoute_instruction(assign, indice, NULL, temp, "indice var");
+			
+	  		sprintf(nom, "%s[t%i]", n->nom,temp->u.oper_temp.oper_tempnum);
+		}
+	  else if( indice->oper_type==O_TEMPORAIRE ){
+	  		sprintf(nom, "%s[t%i]", n->nom,indice->u.oper_temp.oper_tempnum);
+		}
+	  else if( indice->oper_type==O_CONSTANTE ){
+	  		sprintf(nom, "%s[%i]", n->nom,indice->u.oper_valeur);
+		}
+
+	  
+	  return code3a_new_var(nom, tabsymboles.tab[l].portee, tabsymboles.tab[l].adresse + indice->u.oper_valeur*4);
+	}
 }
 /*-------------------------------------------------------------------------*/

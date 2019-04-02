@@ -2,12 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include "syntabs.h"
+#include "c3a2nasm.h"
 #include "analyseur_lexical_flex.h"
 #include "analyseur_syntaxique.tab.h"
 #include "affiche_arbre_abstrait.h"
 #include "tabsymboles.h"
 #include "parcours_arbre_abstrait.h"
 #include "code3a.h"
+
 FILE *yyin;
 extern char *yytext;   // déclaré dans analyseur_lexical
 n_prog * n = NULL;
@@ -117,6 +119,9 @@ if (affiche_syntaxe == 1) {
 	parcours_n_prog(n);
   }
   if(affiche_nasm){
+	code3a_init();
+	parcours_n_prog(n);
+	c3a2nasm_generer();
     //Affiche code cible NASM
   }
   return 0;
