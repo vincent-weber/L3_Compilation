@@ -112,7 +112,9 @@ char *varconst2nasm(operande *oper){
   }
   else if(oper->oper_type == O_VARIABLE){
     if(oper->u.oper_var.oper_portee == P_VARIABLE_GLOBALE) {
+      //printf("tableau : %d\n", oper->u.oper_var.oper_indice);
       if(oper->u.oper_var.oper_indice){
+      	
         operande *indice = oper->u.oper_var.oper_indice;
         char *indchar = malloc(sizeof(char) * 20);
         if(indice->oper_type == O_CONSTANTE){

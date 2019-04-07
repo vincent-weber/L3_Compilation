@@ -84,13 +84,20 @@ void parcours_instr_si(n_instr *n)
   operande* constante0 = code3a_new_constante(0);
   operande *result_test = parcours_exp(n->u.si_.test);
   operande *etiquette1 = code3a_new_etiquette_auto();
-  code3a_ajoute_instruction(jump_if_equal,result_test,constante0,etiquette1,"si test faux");
-  parcours_instr(n->u.si_.alors);
-  code3a_ajoute_instruction(func_end,NULL, NULL ,NULL,"jump fin si");
-  code3a_ajoute_etiquette(etiquette1->u.oper_nom);
+  operande* etiquette2 = code3a_new_etiquette_auto();
   if(n->u.si_.sinon){
+    code3a_ajoute_instruction(jump_if_equal,result_test,constante0,etiquette1,"si test faux");
+  } else {
+    code3a_ajoute_instruction(jump_if_equal,result_test,constante0,etiquette2,"si test faux");
+  }
+  parcours_instr(n->u.si_.alors);
+  if (n->u.si_.alors->type != retourInst)
+  	code3a_ajoute_instruction(jump,etiquette2, NULL ,NULL,"jump fin si");
+  if(n->u.si_.sinon){
+  	code3a_ajoute_etiquette(etiquette1->u.oper_nom);
     parcours_instr(n->u.si_.sinon);
   }
+  code3a_ajoute_etiquette(etiquette2->u.oper_nom);
 }
 
 /*-------------------------------------------------------------------------*/
@@ -159,7 +166,8 @@ void parcours_appel(n_appel *n)
 void parcours_instr_retour(n_instr *n)
 {
   operande* ret = parcours_exp(n->u.retour_.expression);
-  code3a_ajoute_instruction(func_val_ret,ret, NULL ,NULL,"call");
+  code3a_ajoute_instruction(func_val_ret,ret, NULL ,NULL,"ret");
+  code3a_ajoute_instruction(func_end,NULL, NULL ,NULL,"fend apres ret");
 }
 
 /*-------------------------------------------------------------------------*/
@@ -440,6 +448,15 @@ operande* parcours_var_simple(n_var *n)
 	}
 }
 
+char* enleve_indice(char* tableau) {
+
+	char* result = malloc(sizeof(tableau)*sizeof(char));
+	for (int i = 0; i < sizeof(tableau) && tableau[i] != '[' ; ++i) {
+		result[i] = tableau[i];
+	}
+	return result;
+}
+
 /*-------------------------------------------------------------------------*/
 operande* parcours_var_indicee(n_var *n)
 {
@@ -464,7 +481,10 @@ operande* parcours_var_indicee(n_var *n)
 	  		sprintf(nom, "%s[%i]", n->nom,indice->u.oper_valeur);
 		}
 
-	  
+	  /*char* nom_tableau = enleve_indice(nom);
+	  operande* oper_tableau = code3a_new_var(nom_tableau, tabsymboles.tab[l].portee, tabsymboles.tab[l].adresse + indice->u.oper_valeur*4);
+	  oper_tableau->u.oper_var.oper_indice = indice;
+	  return oper_tableau;*/
 	  return code3a_new_var(nom, tabsymboles.tab[l].portee, tabsymboles.tab[l].adresse + indice->u.oper_valeur*4);
 	}
 }
